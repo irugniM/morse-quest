@@ -3,6 +3,9 @@ import Toybox.Lang;
 // Morse table, learning order, word list and timing.
 module Morse {
 
+    // Keep in step with version in manifest.xml (shown under How to play).
+    const VERSION = "1.0.3";
+
     const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const CODES = [
         ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---",

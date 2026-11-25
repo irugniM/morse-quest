@@ -93,7 +93,7 @@ module Settings {
 
     // Clears progress (levels, scores, streak, letter stats) but keeps the
     // player's settings and the answer to the first-launch sound question.
-    const KEEP_KEYS = ["speed", "spacing", "vibe", "sound", "soundAsked"];
+    const KEEP_KEYS = ["speed", "spacing", "vibe", "sound", "soundPrompt"];
 
     function resetAll() as Void {
         var kept = {};

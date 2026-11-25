@@ -14,7 +14,7 @@ class MorseApp extends Application.AppBase {
         // don't offer to turn sound off.
         if (!(Attention has :vibrate)) {
             Settings.setNum("sound", 2);
-            Settings.setNum("soundAsked", 1);
+            Settings.setNum("soundPrompt", 1);
         }
     }
 
@@ -24,7 +24,7 @@ class MorseApp extends Application.AppBase {
     // First launch opens on the sound question; choosing switches to the
     // main menu. Later launches open straight on the main menu.
     function getInitialView() {
-        if (Settings.getNum("soundAsked", 0) == 0) {
+        if (Settings.getNum("soundPrompt", 0) == 0) {
             return [Menus.buildSoundPrompt(), new SoundPromptDelegate()];
         }
         return [Menus.buildMain(), new MainMenuDelegate()];

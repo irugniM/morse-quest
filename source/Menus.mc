@@ -54,7 +54,8 @@ module Menus {
         var m = main;
         if (m == null) { return; }
         var lv = Settings.level();
-        setSub(m, :lesson, "Level " + lv + " of " + Morse.maxLevel());
+        var maxL = Settings.maxLevel();
+        setSub(m, :lesson, lv < maxL ? "Level " + lv + ", " + maxL + " unlocked" : "Level " + lv + " of " + Morse.maxLevel());
         var bw = Settings.best("W");
         setSub(m, :words, bw > 0 ? "best " + bw : "short words");
         var streak = Settings.getNum("streak", 0);
@@ -66,7 +67,7 @@ module Menus {
         setSub(m, :time, "learn by using it");
         setSub(m, :stats, Morse.lettersFor(Settings.maxLevel()).length() + " chars learned");
         setSub(m, :settings, Settings.wpm() + " wpm, " + Settings.spacingLabel());
-        setSub(m, :help, "controls and tips");
+        setSub(m, :help, "controls, v" + Morse.VERSION);
     }
 
     // ---------- debug-only test screens (stripped from release builds) ----------
@@ -159,6 +160,44 @@ module Menus {
         var g = new MorseGame(mode);
         WatchUi.pushView(new MorseView(g), new MorseDelegate(g), WatchUi.SLIDE_LEFT);
         g.start();
+    }
+
+    // ---------- lesson level picker ----------
+
+    // Lists unlocked levels with the letters each one adds, focused on the
+    // current level, plus one locked row showing what comes next.
+    function showLevelPicker() as Void {
+        var m = new WatchUi.Menu2({:title => "Lesson"});
+        var maxL = Settings.maxLevel();
+        for (var l = 1; l <= maxL; l++) {
+            var sub = (l == 1) ? spaced(Morse.lettersFor(1)) : "+ " + spaced(Morse.newLettersFor(l));
+            m.addItem(new WatchUi.MenuItem("Level " + l, sub, l, null));
+        }
+        if (maxL < Morse.maxLevel()) {
+            m.addItem(new WatchUi.MenuItem("Level " + (maxL + 1), "locked: 90% to unlock", :locked, null));
+        }
+        if (m has :setFocus) {
+            m.setFocus(Settings.level() - 1);
+        }
+        WatchUi.pushView(m, new LevelPickerDelegate(), WatchUi.SLIDE_LEFT);
+    }
+
+    // Starts a lesson in place of the picker, so BACK from the game returns
+    // to the main menu.
+    function startLessonFromPicker(level as Number) as Void {
+        Settings.setLevel(level);
+        refreshMain();
+        var g = new MorseGame(MODE_LESSON);
+        WatchUi.switchToView(new MorseView(g), new MorseDelegate(g), WatchUi.SLIDE_LEFT);
+        g.start();
+    }
+
+    function spaced(s as String) as String {
+        var o = "";
+        for (var i = 0; i < s.length(); i++) {
+            o += (i > 0 ? " " : "") + s.substring(i, i + 1);
+        }
+        return o;
     }
 
     // ---------- settings ----------
@@ -255,7 +294,7 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item as WatchUi.MenuItem) as Void {
         if (Menus.launchGuardActive()) { return; }
         var id = item.getId();
-        if (id == :lesson) { Menus.startGame(MODE_LESSON); }
+        if (id == :lesson) { Menus.showLevelPicker(); }
         else if (id == :words) { Menus.startGame(MODE_WORDS); }
         else if (id == :daily) { Menus.startGame(MODE_DAILY); }
         else if (id == :time) { Menus.startGame(MODE_TIME); }
@@ -308,6 +347,25 @@ class DebugMenuDelegate extends WatchUi.Menu2InputDelegate {
             Menus.refreshMain();
             Menus.debugFinish(MODE_DAILY, 80);
         }
+    }
+}
+
+class LevelPickerDelegate extends WatchUi.Menu2InputDelegate {
+
+    function initialize() {
+        Menu2InputDelegate.initialize();
+    }
+
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId();
+        if (id instanceof Number) {
+            Menus.startLessonFromPicker(id);
+        }
+        // Locked row: nothing to start.
+    }
+
+    function onBack() as Void {
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
     }
 }
 
@@ -379,7 +437,7 @@ class SoundPromptDelegate extends WatchUi.Menu2InputDelegate {
     // rather than popping it (popping the only view would exit the app).
     hidden function choose(mode as Number) as Void {
         Settings.setNum("sound", mode);
-        Settings.setNum("soundAsked", 1);
+        Settings.setNum("soundPrompt", 1);
         if (mode == 1) { Feedback.tone(Attention.TONE_KEY); }
         WatchUi.switchToView(Menus.buildMain(), new MainMenuDelegate(), WatchUi.SLIDE_LEFT);
     }
