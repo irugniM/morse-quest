@@ -1,0 +1,12 @@
+# Build output
+bin/
+*.prg
+*.iq
+*.debug.xml
+
+# Signing keys: never commit
+*.der
+*.pem
+
+# Review-only image
+store-screenshots/_overview.png
