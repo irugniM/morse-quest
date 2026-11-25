@@ -1,13 +1,25 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Attention;
+import Toybox.System;
 
 // Main menu, settings menu, help and stats pages.
 module Menus {
 
     var main as WatchUi.Menu2 or Null = null;
 
+    // When the main menu was created. The START press that launches the app
+    // from the watch's app list can arrive here as a select; ignore selects
+    // in the first moment so the app opens on the menu, not in a lesson.
+    var openedAt as Number = 0;
+    const LAUNCH_GUARD_MS = 800;
+
+    function launchGuardActive() as Boolean {
+        return System.getTimer() - openedAt < LAUNCH_GUARD_MS;
+    }
+
     function buildMain() as WatchUi.Menu2 {
+        openedAt = System.getTimer();
         var m = new WatchUi.Menu2({:title => "Morse Quest"});
         m.addItem(new WatchUi.MenuItem("Lesson", "", :lesson, null));
         m.addItem(new WatchUi.MenuItem("Words", "", :words, null));
@@ -233,6 +245,7 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
+        if (Menus.launchGuardActive()) { return; }
         var id = item.getId();
         if (id == :lesson) { Menus.startGame(MODE_LESSON); }
         else if (id == :words) { Menus.startGame(MODE_WORDS); }
@@ -326,6 +339,33 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
     function onBack() as Void {
         Menus.refreshMain();
         WatchUi.popView(WatchUi.SLIDE_RIGHT);
+    }
+}
+
+// First launch: ask whether to play sounds. A Menu2 is used instead of a
+// Confirmation because the native confirmation centres its question at the
+// top of the screen, where the Instinct subscreen covers it.
+class SoundPromptDelegate extends WatchUi.Menu2InputDelegate {
+
+    function initialize() {
+        Menu2InputDelegate.initialize();
+    }
+
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        choose(item.getId() == :soundOn ? 1 : 0);
+    }
+
+    // BACK keeps the default (sound on) and doesn't ask again.
+    function onBack() as Void {
+        choose(Settings.sound());
+    }
+
+    hidden function choose(mode as Number) as Void {
+        Settings.setNum("sound", mode);
+        Settings.setNum("soundAsked", 1);
+        if (mode == 1) { Feedback.tone(Attention.TONE_KEY); }
+        Menus.refreshMain();
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }
 

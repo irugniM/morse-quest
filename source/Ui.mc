@@ -30,10 +30,14 @@ module Ui {
 
     // Centre x for a line at yy. Next to the subscreen, centre in the free
     // space between the round bezel (left) and the subscreen.
-    // Only moves the line if, centred normally, it would actually touch the subscreen.
+    // Only moves the line if, centred normally, it would come near the subscreen.
+    // SUB_MARGIN leaves room for the physical rim around the subscreen lens,
+    // which covers a few pixels more than its reported bounds on the real watch.
+    const SUB_MARGIN = 12;
+
     function cx(dc as Graphics.Dc, yy as Number, halfH as Number, halfW as Number) as Number {
         var s = sub;
-        if (s != null && yy - halfH < s.y + s.height + 2 && dc.getWidth() / 2 + halfW > s.x - 3) {
+        if (s != null && yy - halfH < s.y + s.height + 4 && dc.getWidth() / 2 + halfW > s.x - SUB_MARGIN) {
             var left = 4;
             if (System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND) {
                 var r = dc.getWidth() / 2;
@@ -42,7 +46,7 @@ module Ui {
                     left = r - Math.sqrt(r * r - dy * dy).toNumber() + 4;
                 }
             }
-            return (left + s.x - 4) / 2;
+            return (left + s.x - SUB_MARGIN) / 2;
         }
         return dc.getWidth() / 2;
     }
