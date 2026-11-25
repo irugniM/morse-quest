@@ -82,3 +82,7 @@ The manifest currently lists only Instinct 3 Solar. To support more watches:
 2. Add its id to `<iq:products>` in `manifest.xml`.
 3. Check every screen in the simulator. The layout adapts to round or square screens, colour or monochrome, and screens with or without a subscreen.
 4. Leave out touch-only watches: they have no UP/DOWN buttons.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
