@@ -91,7 +91,20 @@ module Settings {
         return (n - (s[1] as Number)) * 100 / n;
     }
 
+    // Clears progress (levels, scores, streak, letter stats) but keeps the
+    // player's settings and the answer to the first-launch sound question.
+    const KEEP_KEYS = ["speed", "spacing", "vibe", "sound", "soundAsked"];
+
     function resetAll() as Void {
+        var kept = {};
+        for (var i = 0; i < KEEP_KEYS.size(); i++) {
+            var v = Application.Storage.getValue(KEEP_KEYS[i]);
+            if (v != null) { kept.put(KEEP_KEYS[i], v); }
+        }
         Application.Storage.clearValues();
+        var keys = kept.keys();
+        for (var i = 0; i < keys.size(); i++) {
+            Application.Storage.setValue(keys[i] as String, kept.get(keys[i]) as Application.PropertyValueType);
+        }
     }
 }

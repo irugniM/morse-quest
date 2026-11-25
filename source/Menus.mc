@@ -18,6 +18,14 @@ module Menus {
         return System.getTimer() - openedAt < LAUNCH_GUARD_MS;
     }
 
+    function buildSoundPrompt() as WatchUi.Menu2 {
+        openedAt = System.getTimer();
+        var m = new WatchUi.Menu2({:title => "Sound"});
+        m.addItem(new WatchUi.MenuItem("Sound on", "beeps for right/wrong", :soundOn, null));
+        m.addItem(new WatchUi.MenuItem("Sound off", "vibration only", :soundOff, null));
+        return m;
+    }
+
     function buildMain() as WatchUi.Menu2 {
         openedAt = System.getTimer();
         var m = new WatchUi.Menu2({:title => "Morse Quest"});
@@ -328,8 +336,12 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         } else if (id == :level) {
             Settings.cycleLevel();
         } else if (id == :reset) {
-            WatchUi.pushView(new WatchUi.Confirmation("Reset all progress?"),
-                new ResetConfirmDelegate(_m), WatchUi.SLIDE_IMMEDIATE);
+            // Menu instead of a Confirmation: the native confirmation's
+            // question sits under the Instinct subscreen. Safe choice first.
+            var c = new WatchUi.Menu2({:title => "Reset?"});
+            c.addItem(new WatchUi.MenuItem("Keep progress", "go back", :keep, null));
+            c.addItem(new WatchUi.MenuItem("Reset progress", "levels, scores, stats", :doReset, null));
+            WatchUi.pushView(c, new ResetConfirmDelegate(_m), WatchUi.SLIDE_LEFT);
             return;
         }
         Menus.refreshSettings(_m);
@@ -352,6 +364,9 @@ class SoundPromptDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
+        // Same launch guard as the main menu: the START press that opened
+        // the app must not answer the question.
+        if (Menus.launchGuardActive()) { return; }
         choose(item.getId() == :soundOn ? 1 : 0);
     }
 
@@ -360,29 +375,30 @@ class SoundPromptDelegate extends WatchUi.Menu2InputDelegate {
         choose(Settings.sound());
     }
 
+    // This prompt is the app's first view, so replace it with the main menu
+    // rather than popping it (popping the only view would exit the app).
     hidden function choose(mode as Number) as Void {
         Settings.setNum("sound", mode);
         Settings.setNum("soundAsked", 1);
         if (mode == 1) { Feedback.tone(Attention.TONE_KEY); }
-        Menus.refreshMain();
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.switchToView(Menus.buildMain(), new MainMenuDelegate(), WatchUi.SLIDE_LEFT);
     }
 }
 
-class ResetConfirmDelegate extends WatchUi.ConfirmationDelegate {
+class ResetConfirmDelegate extends WatchUi.Menu2InputDelegate {
     hidden var _m as WatchUi.Menu2;
 
     function initialize(m as WatchUi.Menu2) {
-        ConfirmationDelegate.initialize();
+        Menu2InputDelegate.initialize();
         _m = m;
     }
 
-    function onResponse(response as WatchUi.Confirm) as Boolean {
-        if (response == WatchUi.CONFIRM_YES) {
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        if (item.getId() == :doReset) {
             Settings.resetAll();
             Menus.refreshSettings(_m);
             Menus.refreshMain();
         }
-        return true;
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
     }
 }
