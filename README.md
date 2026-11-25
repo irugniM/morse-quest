@@ -12,13 +12,15 @@ Target device: Instinct 3 Solar 45 mm / 50 mm (`instinct3solar45mm`, 176x176 mon
 
 | Mode | What it does |
 |---|---|
-| Lesson | Single-letter drills. Starts with E T A N and adds two characters per level, 17 levels in total (A-Z and 0-9). A lesson is 20 letters; score 90% or more to unlock the next level. New letters and letters you often miss come up more often. Each lesson starts by showing and buzzing the new letters. |
+| Lesson | Single-letter drills. Starts with E T A N and adds two characters per level, 17 levels in total (A-Z and 0-9). A lesson is 20 letters; score 90% or more to unlock the next level. New letters and letters you often miss come up more often. Each lesson starts by showing and buzzing the new letters. Opening Lesson shows a level picker with every unlocked level and the letters it adds. |
 | Words | 10 short words (SOS, RUN, GPS...) built only from letters you have unlocked. |
 | Daily cipher | 5 words seeded by the date. One play per day; keeps a streak. |
 | Buzz the time | Vibrates the current time in Morse. |
 | Stats | Level, best scores and your weakest letters. |
 | Settings | Letter speed 8/10/12/15 WPM, letter spacing (Farnsworth), vibration strength, sound (off / beep / morse), lesson level, reset progress. |
 | How to play | Five help pages. |
+
+On first launch the app asks whether to play sounds (on: right/wrong beeps, off: vibration only). The version is shown under How to play.
 
 ## Controls
 
